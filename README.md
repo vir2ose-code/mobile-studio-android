@@ -19,7 +19,14 @@ Dieses Repository stellt die native Android-App (Kotlin / AndroidX / Hardware Ac
 
 Über GitHub Actions wird bei jedem Push automatisch gebaut:
 1. **`.aab` (Android App Bundle):** `MobileStudio_PlayStore_Release.aab` – die offizielle Datei zum Hochladen in die **Google Play Console**.
-2. **`.apk` (Universal APK):** `MobileStudio_Direct_Install.apk` – die fertige Installationsdatei zum direkten Übertragen per USB-Kabel oder Download auf Android-Geräte.
+2. **`.apk` (Universal APK):** `MobileStudio_Direct_Install.apk` – die fertige, signierte Installationsdatei zum direkten Übertragen per USB, WhatsApp, Drive oder Download auf jedes Android-Gerät.
+3. **`release.keystore` (Release Signaturschlüssel):** Der kryptografische Signaturschlüssel:
+   * **Key Alias:** `mobilestudio`
+   * **Key Password:** `vir2osesound`
+   * **Store Password:** `vir2osesound`
+
+👉 **Direkter Download der fertigen Pakete:**  
+[GitHub Actions Runs – Mobile Studio Android](https://github.com/vir2ose-code/mobile-studio-android/actions/runs/44846862630)
 
 ---
 
