@@ -27,10 +27,26 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Release Android App Bundle (.aab)
-        run: ./gradlew :app:bundleRelease --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew :app:bundleRelease --no-daemon --stacktrace 2>&1 | tee gradle_bundle.log || {
+            echo "### Gradle Bundle Failure Log" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 100 gradle_bundle.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
 
       - name: Build Release APK (.apk)
-        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          ./gradlew :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee gradle_apk.log || {
+            echo "### Gradle APK Failure Log" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 100 gradle_apk.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
 
       - name: Prepare Output Artifacts
         run: |
