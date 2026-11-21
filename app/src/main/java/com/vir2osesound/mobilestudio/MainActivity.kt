@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
             )
             setBackgroundColor(Color.TRANSPARENT)
             setLayerType(View.LAYER_TYPE_HARDWARE, null)
-            isOverScrollMode = View.OVER_SCROLL_NEVER
+            overScrollMode = View.OVER_SCROLL_NEVER
         }
 
         setupWebSettings()
