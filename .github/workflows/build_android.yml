@@ -36,10 +36,20 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Release Android App Bundle (.aab)
-        run: ./gradlew :app:bundleRelease --no-daemon --stacktrace
+        run: |
+          ./gradlew :app:bundleRelease --no-daemon --stacktrace > gradle_bundle.log 2>&1 || {
+            EXIT_CODE=$?
+            tail -n 100 gradle_bundle.log
+            exit $EXIT_CODE
+          }
 
       - name: Build Release APK (.apk)
-        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+        run: |
+          ./gradlew :app:assembleRelease --no-daemon --stacktrace > gradle_apk.log 2>&1 || {
+            EXIT_CODE=$?
+            tail -n 100 gradle_apk.log
+            exit $EXIT_CODE
+          }
 
       - name: Prepare Output Artifacts
         run: |
@@ -88,3 +98,40 @@ jobs:
           name: MobileStudio_Release_Keystore
           path: output_binaries/release.keystore
           retention-days: 14
+
+      - name: Post Failure Log Comment
+        if: failure()
+        run: |
+          python3 - << 'EOF'
+          import os, json, urllib.request
+
+          log_text = ""
+          for fname in ['gradle_bundle.log', 'gradle_apk.log']:
+              if os.path.exists(fname):
+                  with open(fname, 'r', errors='ignore') as f:
+                      log_text += f"\n=== {fname} ===\n" + f.read()[-3000:]
+
+          token = os.environ.get('GITHUB_TOKEN')
+          repo = os.environ.get('GITHUB_REPOSITORY')
+          sha = os.environ.get('GITHUB_SHA')
+
+          if token and repo and sha and log_text:
+              body_data = json.dumps({'body': f"### Build Failure Details:\n```\n{log_text}\n```"}).encode('utf-8')
+              req = urllib.request.Request(
+                  f"https://api.github.com/repos/{repo}/commits/{sha}/comments",
+                  data=body_data,
+                  headers={
+                      'Authorization': f'Bearer {token}',
+                      'Accept': 'application/vnd.github.v3+json',
+                      'User-Agent': 'Actions',
+                      'Content-Type': 'application/json'
+                  }
+              )
+              try:
+                  with urllib.request.urlopen(req) as resp:
+                      print("Comment posted:", resp.status)
+              except Exception as e:
+                  print("Failed to post comment:", e)
+          EOF
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
