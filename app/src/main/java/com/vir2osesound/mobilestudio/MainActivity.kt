@@ -79,8 +79,8 @@ class MainActivity : AppCompatActivity() {
             visibility = View.VISIBLE
         }
 
-        rootLayout.addSubview(webView)
-        rootLayout.addSubview(progressBar)
+        rootLayout.addView(webView)
+        rootLayout.addView(progressBar)
         setContentView(rootLayout)
 
         applyImmersiveMode(resources.configuration.orientation)
