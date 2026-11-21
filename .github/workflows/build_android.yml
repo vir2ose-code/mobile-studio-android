@@ -109,7 +109,13 @@ jobs:
           for fname in ['gradle_bundle.log', 'gradle_apk.log']:
               if os.path.exists(fname):
                   with open(fname, 'r', errors='ignore') as f:
-                      log_text += f"\n=== {fname} ===\n" + f.read()[-3000:]
+                      content = f.read()
+                      lines = content.splitlines()
+                      errors = [l for l in lines if l.startswith('e: ') or 'FAILURE:' in l or 'error:' in l.lower()]
+                      if errors:
+                          log_text += f"\n=== {fname} Errors ===\n" + "\n".join(errors[:40])
+                      else:
+                          log_text += f"\n=== {fname} Tail ===\n" + "\n".join(lines[-40:])
 
           token = os.environ.get('GITHUB_TOKEN')
           repo = os.environ.get('GITHUB_REPOSITORY')
