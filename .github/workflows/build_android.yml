@@ -1,0 +1,60 @@
+name: Build Android .AAB & .APK (Mobile Studio)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build Mobile Studio AAB & APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x ./gradlew
+
+      - name: Build Release Android App Bundle (.aab)
+        run: ./gradlew :app:bundleRelease --no-daemon --stacktrace
+
+      - name: Build Release APK (.apk)
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Prepare Output Artifacts
+        run: |
+          mkdir -p output_binaries
+          AAB_FILE=$(find app/build/outputs/bundle/release -name "*.aab" | head -n 1)
+          APK_FILE=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          echo "Found AAB at: $AAB_FILE"
+          echo "Found APK at: $APK_FILE"
+          cp "$AAB_FILE" output_binaries/MobileStudio_PlayStore_Release.aab
+          cp "$APK_FILE" output_binaries/MobileStudio_Direct_Install.apk
+          ls -lh output_binaries/
+
+      - name: Upload Google Play Store Bundle (.aab)
+        uses: actions/upload-artifact@v4
+        with:
+          name: MobileStudio_GooglePlay_AAB
+          path: output_binaries/MobileStudio_PlayStore_Release.aab
+          retention-days: 14
+
+      - name: Upload Direct Install APK (.apk)
+        uses: actions/upload-artifact@v4
+        with:
+          name: MobileStudio_Install_APK
+          path: output_binaries/MobileStudio_Direct_Install.apk
+          retention-days: 14
